@@ -4,9 +4,14 @@
 
 Per [Stack Overflow's 2021 Developer Survey](https://insights.stackoverflow.com/survey/2021#most-popular-technologies-tools-tech), it's one of the most popular development tools.
 
-TODO: add one sentence or two about what will be covered in this article
+This article will take you through the basics of Docker:
+- what a *Dockerfile* looks like and what its most common instructions do.
+- what are images and containers, how they are created, and what are the basic commands to manage them.
 
-TODO: may want to add a note that while examples are python-based, the article is geared toward any language
+Since I provided a simple *HelloWorld* app, you'll also be able to try all the commands on your own. You can clone the app from [GitHub](TODO: link).
+While container and image commands are independent of the language you chose for your application, the *Dockerfile* looks somehow different for different languages.
+Despite the provided example (and so the *Dockerfile*) being Python-based, you'll easily be able to tailor your newly-gained knowledge to other languages.
+
 
 ## Objectives
 
@@ -16,7 +21,7 @@ By the end of this article, you should be able to:
 1. Describe and differentiate between the following concepts and components: Docker Engine, Docker Desktop, Dockerfile, Docker image, and Docker container
 1. Follow more complicated tutorials that use Docker
 
-## Containers
+## Containers and virtual machines
 
 Before jumping into Docker, it's important to understand the difference between containers and virtual machines.
 
@@ -43,7 +48,7 @@ All those advantages are due to Docker containers not needing their own operatin
 
 When people refer to Docker, they are typically referring to the [Docker Engine](https://docs.docker.com/engine/).
 
-Docker Engine is the underlying open source containerization technology for building, managing, and running containerized applications. It's a client-server application with following components:
+Docker Engine is the underlying open source containerization technology for building, managing, and running containerized applications. It's a client-server application with the following components:
 
 1. [Docker daemon](https://docs.docker.com/engine/reference/commandline/dockerd/) (called *dockerd*) is a service that runs in the background that listens for Docker Engine API requests and manages Docker objects like images and containers.
 1. [Docker Engine API](https://docs.docker.com/engine/api/latest/) is a RESTful API that's used to interact with Docker daemon.
@@ -53,7 +58,7 @@ Docker Engine is the underlying open source containerization technology for buil
 
 These days, when you try to install Docker, you'll come across [Docker Desktop](https://www.docker.com/products/docker-desktop/). It's important to understand that Docker Desktop is not the same as Docker Engine. While Docker Engine is included with Docker Desktop, it's important to understand that Docker Desktop is *not* the same as Docker Engine. Docker Desktop is an integrated development environment for Docker containers. It makes it much easier to get your operating system configured for working with Docker.
 
-If you haven't already, go ahead install Docker Desktop:
+If you haven't already, go ahead and install Docker Desktop:
 
 - [Linux](https://docs.docker.com/desktop/install/linux-install/)
 - [MacOS](https://docs.docker.com/desktop/install/mac-install/)
@@ -73,7 +78,7 @@ At the heart of Docker, there are three core concepts:
 
 We'll look into all three core concepts in detail in the next few sections.
 
-> It's highly recommend to read through [Docker overview](https://docs.docker.com/get-started/overview/) before moving on.
+> It's highly recommended to read through [Docker overview](https://docs.docker.com/get-started/overview/) before moving on.
 
 ## Dockerfile
 
@@ -110,16 +115,12 @@ All Dockerfiles include a parent/base image on which the new image will be built
 FROM python:3.10-slim-buster
 ```
 
-Valid Dockerfiles always include **exactly one** `FROM` instruction.
-
-TODO: The above statement is confusing since you can have multiple `FROM` instructions in a single Dockerfile with multistage builds
+Valid Dockerfile always includes a `FROM` instruction.
 
 > Although *parent* and *base* image terms are sometimes used interchangeably, there's a difference between them. A parent image has its own parent image. Base image has no parent; it starts with `FROM scratch`.
-> [Alpine image](https://github.com/nodejs/docker-node/blob/c97bb67fb82bb10fd199cb4c4e57b3ab43605a9c/18/alpine3.15/Dockerfile) is a base image and [Python:alpine](https://github.com/docker-library/python/blob/9fd031d91ced6ddc1bf1f0f34b893ad82fa0d010/3.11-rc/alpine3.16/Dockerfile) is a parent image (whose parent(base) image is actually the alpine image).
+> [Alpine image](https://github.com/alpinelinux/docker-alpine/blob/adebcfd075c83ef788b5f071678dcfb8ea118bb3/x86_64/Dockerfile) is a base image and [Python:alpine](https://github.com/docker-library/python/blob/9fd031d91ced6ddc1bf1f0f34b893ad82fa0d010/3.11-rc/alpine3.16/Dockerfile) is a parent image (whose parent(base) image is actually the alpine image).
 >
 > It's possible to create a [base image on your own](https://docs.docker.com/develop/develop-images/baseimages/), but the probability of you needing your own image is small.
-
-TODO: that alpine image example above doesn't have `FROM scratch`...?
 
 You can find parent images on [Docker Hub](https://docs.docker.com/docker-hub/), which is Docker's library/registry for Docker images. You can think of it as GitHub for Docker images. You'll probably want to use either [official images](https://docs.docker.com/docker-hub/official_images/) or verified images from trusted sources since they're more likely to adhere to [Docker best practices](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/) and contain the latest security fixes.
 
@@ -175,11 +176,8 @@ You should use `CMD` if you want the flexibility to run different executables de
 When using Docker, you'll probably use one or the other. If you don't use one, the container will be stopped immediately since there's no reason for it to exist (the exception being if you're also using Docker Compose).
 
 You may also use both `CMD` and `ENTRYPOINT` in the same Dockerfile, in which case `CMD` serves as the default argument for the `ENTRYPOINT`.
-
-TODO: the following sentences seem to contradict one another... can your re-word?
-
-1. You can have only one `CMD`/`ENTRYPOINT` instruction in a Dockerfile, but it can point to a more complicated executable file.
-1. You may also use both `CMD` and `ENTRYPOINT` in the same Dockerfile, in which case `CMD` serves as the default argument for the `ENTRYPOINT`.
+You can have only one `CMD`  instruction in a Dockerfile, but it can point to a more complicated executable file. If you have more than one `CMD`, only the last `CMD` will take effect.
+The same goes for the `ENTRYPOINT` instruction.
 
 Example of `CMD` instruction usage:
 
@@ -204,7 +202,7 @@ python manage.py migrate
 python manage.py collectstatic --noinput
 ```
 
-> It's important to understand the difference between `CMD` and `ENTRYPOINT`. For moe, check out [Understand the Difference Between ENTRYPOINT and CMD](https://testdriven.io/blog/docker-best-practices/#understand-the-difference-between-entrypoint-and-cmd) as well as the [official docs](https://docs.docker.com/engine/reference/builder/#understand-how-cmd-and-entrypoint-interact).
+> It's important to understand the difference between `CMD` and `ENTRYPOINT`. For more, check out [Understand the Difference Between ENTRYPOINT and CMD](https://testdriven.io/blog/docker-best-practices/#understand-the-difference-between-entrypoint-and-cmd) as well as the [official docs](https://docs.docker.com/engine/reference/builder/#understand-how-cmd-and-entrypoint-interact).
 
 ### ADD and COPY
 
@@ -238,9 +236,9 @@ ADD source.file.tar.gz /destination/path
 
 ## Image
 
-An [image](https://docs.docker.com/glossary/#image) might be the most confusing concept of the three. You create a Dockerfile, and then use a container, but an image lies between those two.
+An [image](https://docs.docker.com/glossary/#image) might be the most confusing concept of the three. You create a Dockerfile and then use a container, but an image lies between those two.
 
-An [image](https://docs.docker.com/glossary/#image) is a read-only embodiment of a Dockerfile that's used to create a Docker container. It consists of [layers](https://docs.docker.com/glossary/#layer) --  each line in a Dockerfile makes for one layer. You can't change an image directly; you change it by changing the Dockerfile. You don't directly use an image either; you use a container created out from an image.
+An [image](https://docs.docker.com/glossary/#image) is a read-only embodiment of a Dockerfile that's used to create a Docker container. It consists of [layers](https://docs.docker.com/glossary/#layer) --  each line in a Dockerfile makes for one layer. You can't change an image directly; you change it by changing the Dockerfile. You don't directly use an image either; you use a container created from an image.
 
 The most important image-related tasks are:
 
@@ -254,7 +252,7 @@ The most important image-related tasks are:
 > What's more, people (and even [documentation](https://docs.docker.com/engine/reference/commandline/create/#description)) started referring to it as a 'shorthand'.
 > The advantage of using the new versions is that you'll better understand which of the three concepts the command is dealing with. The commands are also easier to find in the docs.
 > The advantage of the old version is that it's shorter, and the documentation seems more comprehensive.
->
+> I'll be using the descriptive form of commands in this article. At the end of the article, you can find all the commands with their shorthand versions.
 > [Here](https://docs.docker.com/engine/reference/commandline/image/), you can find all the new-form commands that deal with images.
 
 ### Building
@@ -265,48 +263,37 @@ This image will use the current directory as a context:
 
 ```sh
 $ docker image build .
-
-# shorthand
-$ docker build .
 ```
 
-> This article can be read-only. However, if you want to follow along, I provided a [HelloWorld application](TODO: link) that already includes a Dockerfile you can use. Feel free to clone it down and run the commands as you move through this article.
+There are a number of [options](https://docs.docker.com/engine/reference/commandline/image_build/#options) you can provide.
+For example, `-f` is used to specify a specific Dockerfile when you have multiple Dockerfiles (e.g., `Dockerfile.prod`) or when the `Dockerfile` isn't in the current directory (e.g., `docker image build . -f docker/Dockerfile.prod`).
 
-There are a number of [options](https://docs.docker.com/engine/reference/commandline/image_build/#options) you can provide. Two of them that you really should know are:
+Probably the most important is the `-t` tag that is used to name/tag an image.
 
-1. `-t` - name the image so you'll be easily able to reference it (e.g, `docker image build . -t hello_world`)
-1. `-f` - specify a specific Dockerfile when you have multiple Dockerfiles (e.g., `Dockerfile.prod`) or when the `Dockerfile` isn't in the current directory (e.g., `docker image build . -f docker/Dockerfile.prod`)
+When you build an image, it gets assigned an ID. Contrary to what you might expect, the IDs are not unique.
+If you want to be able to easily reference your image, you should name/tag it.
+With `-t`, you can assign a name **and** a tag to it.
 
-TODO: I think you should def. talk about tagging.
+Here's an example of creating three images - one without the usage of `-t`, one with a name assigned, and one with a name and a tag assigned.
 
-#### Image ID vs Image Name
-
-TODO: I don't know if this section adds a lot of value. The image ID is a hash of the local JSON configuration. You may just want to say that it's important to use a name since the image ID is not always unique.
-
-Images get assigned an ID when they're built.
-As already mentioned, you decide the name of it by providing a `-t` flag.
-Depending The names can be reassigned, the `IMAGE ID` can be the same for multiple images, ...
-
-Let's see how names and image IDs work in practice.
-I've done some experimenting with a building of Docker image.
-I rebuilt the image multiple times while making some changes with Dockerfile and image name to see what happens with the image name and ID.
 ```sh
+$ docker image build .
+$ docker image build . -t hello_world
+$ docker image build . -t hello_world:67d19c27b60bd782c9d3600ae914604a94bddfd4
+$ docker image ls
 REPOSITORY           TAG       IMAGE ID       CREATED          SIZE
-version_5            latest    ddf2fb2347d2   3 seconds ago    245MB
-<none>               <none>    af24a3f3f896   2 minutes ago    174MB
-version_4            latest    130d8fb19b39   4 minutes ago    174MB
-version_3            latest    6d79fd80a06b   7 minutes ago    174MB
-version_2            latest    6d79fd80a06b   7 minutes ago    174MB
-version_1            latest    7d0d6e0336a3   8 minutes ago    174MB
+REPOSITORY    TAG                                        IMAGE ID       CREATED          SIZE
+hello_world   67d19c27b60bd782c9d3600ae914604a94bddfd4   e03784993f22   25 minutes ago   181MB
+hello_world   latest                                     e03784993f22   26 minutes ago   181MB
+<none>        <none>                                     7a615d108866   29 minutes ago   181MB
 ```
 
-Here's an explanation of how the names and IDs were assigned:
-1. I've run the build from a `Dockerfile` - named `version_1`, and `IMAGE ID` was assigned.
-1. `version_2` has a different ID because I changed the `Dockerfile` content.
-1. `version_3` has the same ID as `version_2` because I didn't change anything in the *Dockerfile*; I just built the same image with a new name.
-1. For `version_4`, I changed the name of `Dockerfile` to `Dockerfile.prod`. Despite the file content staying the same, the `IMAGE ID` changed.
-1. I named the image with ID af24a3f3f896 `version_5`. After changing the `Dockerfile`, I assigned the same name to the new image. That caused the previous image to be "renamed" to `<none>`, and the new image had a different ID assigned.
-1. You can't see that, but assigning the same name with unchanged `Dockerfile` overrides the image with the same name (and `IMAGE ID`).
+When the image was built without a name/tag provided, all you can reference it by is *IMAGE ID* (bad idea).
+Where we provided only the name (`-t hello_world`), the tag is automatically set to `latest` (still bad idea).
+Where beside the name we also provided the tag (`-t hello_world:67d19c27b60bd782c9d3600ae914604a94bddfd4`), the provided tag is used, instead of `latest`.
+Since the behavior of the `latest` tag isn't always as you'd expect, [best practice](https://testdriven.io/blog/docker-best-practices/#version-docker-images) is to provide both name and the tag.
+
+> Take notice how both *hello_world* images have the same ID.
 
 ### Listing
 
@@ -322,10 +309,6 @@ hello_world     latest    c50405e84d39   9 minutes ago   245MB
 <none>          <none>    2700a62cd8f1   42 hours ago    245MB
 alpine/git      latest    692618a0d74d   2 weeks ago     43.4MB
 todo_app        test      999740882932   3 weeks ago     1.03GB
-
-# shorthand
-$ docker image ls
-
 ```
 
 ### Removing
@@ -341,7 +324,7 @@ For the first case, you use `docker image rm`; for the second, you use `docker i
 
 [docker image rm](https://docs.docker.com/engine/reference/commandline/image_rm/) removes and untags the selected image(s). It requires one argument: The reference to the image(s) you want to remove. You can reference it by name or short/long ID.
 
-If you think back to the explanation of the image ID vs name... there can be multiple images with a different name but the same ID. If you try to remove the image by image ID and multiple images with that ID exist, you'll get an `image is referenced in multiple repositories` error. In that case, you'll have to remove it by referencing it by name. If you wish to remove all images with the same ID, you can use the `-f` flag.
+If you think back to the explanation of image tagging... there can be multiple images with a different name but the same ID. If you try to remove the image by image ID and multiple images with that ID exist, you'll get an `image is referenced in multiple repositories` error. In that case, you'll have to remove it by referencing it by name. If you wish to remove all images with the same ID, you can use the `-f` flag.
 
 Example of unsuccessful and successful image removal:
 
@@ -396,7 +379,7 @@ deleted: sha256:1934187bf17ccf4e754842a4ceeacf5c14aaa63ba7a04c0c520f53946426c902
 
 ## Container
 
-The third concept you need to understand is a [container](https://docs.docker.com/glossary/#container), which is a controlled environment for your application. An image becomes a container when it's ran on Docker Engine. It's the end goal: You use Docker so you can have a container for your application.
+The third concept you need to understand is a [container](https://docs.docker.com/glossary/#container), which is a controlled environment for your application. An image becomes a container when it's run on Docker Engine. It's the end goal: You use Docker so you can have a container for your application.
 
 The main operations you can do with a container are
 
@@ -453,7 +436,7 @@ $ docker container run -p 8000:8000 -d my_image
 0eb20b715f42bc5a053dc7878b3312c761058a25fc1efaffb7920b3b4e48df03
 ```
 
-Your container gets a unique quirky name by default, but you can assign your own name:
+Your container gets a unique, quirky name by default, but you can assign your own name:
 
 ```sh
 $ docker container run -p 8000:8000 --name my_great_container  my_image
@@ -469,9 +452,6 @@ Example:
 
 ```sh
 $ docker container start -a reverent_sammet
-
-# shorthand
-$ docker start -a reverent_sammet
 ```
 
 ### Listing
@@ -486,9 +466,6 @@ $ docker container ls
 CONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS         PORTS                    NAMES
 0f21395ec96c   9973e9c65229   "/bin/sh -c 'gunicor…"   6 minutes ago   Up 6 minutes   0.0.0.0:80->8000/tcp     shopping
 73bd69d041ae   my_image       "/bin/sh -c 'uvicorn…"   2 hours ago     Up 2 hours     0.0.0.0:8000->8000/tcp   my_great_container
-
-# shorthand
-$ docker ps
 ```
 
 If you want to also see the stopped containers, you can add the `-a` flag:
@@ -501,9 +478,6 @@ CONTAINER ID   IMAGE          COMMAND                  CREATED              STAT
 73bd69d041ae   my_image       "/bin/sh -c 'uvicorn…"   2 hours ago          Up 2 hours                 0.0.0.0:8000->8000/tcp   my_great_container
 0eb20b715f42   my_image       "/bin/sh -c 'uvicorn…"   2 hours ago          Exited (137) 2 hours ago                            agitated_gagarin
 489a02b8cfac   my_image       "/bin/sh -c 'uvicorn…"   2 hours ago          Created                                             vigorous_poincare
-
-# shorthand
-$ docker ps -a
 ```
 
 Let's take a look at the output for:
@@ -531,16 +505,13 @@ my_great_container
 
 $ docker container stop 73bd69d041ae
 73bd69d041ae
-
-# shorthand
-$ docker stop my_great_container
 ```
 
 > A container can be started again with `docker container start`.
 
 ### Removing
 
-Similar to images, to remove a container you can either:
+Similar to images, to remove a container, you can either:
 
 1. remove one or more selected containers via [docker container rm](https://docs.docker.com/engine/reference/commandline/container_rm/).
 1. remove all stopped containers via [docker container prune](https://docs.docker.com/engine/reference/commandline/container_prune/)
@@ -550,9 +521,6 @@ Example of `docker container rm`:
 ```sh
 $ docker container rm festive_euclid
 festive_euclid
-
-# shorthand
-$ docker rm festive_euclid
 ```
 
 Example of `docker container prune`:
@@ -571,23 +539,29 @@ Deleted Containers:
 
 ## Commands
 
-TODO: it might be helpful to provide summary of all commands...
+We went through a lot of commands in this article.
+To help you navigate through what you read, I prepared a table with all the commands we saw in the article.
+The table includes the long, descriptive, and short command where it exists.
 
-```sh
-# build an image
-$ docker image build .
+| Command                | Alias         | Usage                               |
+|------------------------|---------------|-------------------------------------|
+| docker image build     | docker build  | Build an image from Dockerfile.     |
+| docker image ls        | docker images | List images.                        |
+| docker image rm        | docker rmi    | Remove selected images.             |
+| docker image prune     | /             | Remove unused images.               |
+| docker container run   | docker run    | Create the container and starts it. |
+| docker container start | docker start  | Start an existing container.        |
+| docker container ls    | docker ps     | List the containers.                |
+| docker container stop  | docker stop   | Stop the container.                 |
+| docker container rm    | docker rm     | Remove a container.                 |
+| docker container prune | /             | Remove all stopped containers.      |
 
-# shorthand
-$ docker build .
-
-...
-```
 
 ## Conclusion
 
 To summarize, the most essential concepts in Docker are Dockerfile, image, and container.
 
-Using a Dockerfile as a blueprint, you build an image. Images can then be used to build other images and can be found on Docker Hub.Running an image produces a controlled environment for your application, called a container.
+Using a Dockerfile as a blueprint, you build an image. Images can then be used to build other images and can be found on Docker Hub. Running an image produces a controlled environment for your application, called a container.
 
 The aim of this article was to explain to you the basics of Docker. If you want to read some more hands-on tutorials, you can check our extensive list of [articles related to Docker](https://testdriven.io/blog/topics/docker/).
 
@@ -598,18 +572,3 @@ Docker is a complex system. This article just scratches the surface. There are s
 1. Docker (similar to git) has an ignore file called  [.dockerignore](https://docs.docker.com/engine/reference/builder/#dockerignore-file) where you can define which files and folders you don't want to add to the image (due to security, size, etc.).
 1. As I mentioned in the article, the data from the container's writable layers don't persist if the container is removed. You can use [volumes](https://docs.docker.com/storage/volumes/) or [bind mounts](https://docs.docker.com/storage/bind-mounts/) to store files on the host machine.
 1. If your application needs multiple containers (for example, if your Django app uses PostgreSQL), you can use [Docker Compose](https://docs.docker.com/compose/) to simplify their lifecycle.
-
---
-
-
-TODO Michael: I didn't explain shell vs. exec commands as it's already confusing enough.
-I also use shell form everywhere (because most tutorials, including TDio, use it), despite not being the best practice.
-Do you think it's necessary to address that / should I use the exec form?
-
-Michael: No, I think it's fine. They can look at the Docker best practices article for more on shell vs exec
-
-TODO Michael:
-Considering the explanation, which of the two do you think I should use in the article?
-I'm constantly providing both aliases, but since there are so many, I think it gets confusing - maybe it would be best to stick with one version and provide some sort of appendix at the end with aliases to the commands I used?
-
-Michael: I mostly used the descriptive format
